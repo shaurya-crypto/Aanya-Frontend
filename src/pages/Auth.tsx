@@ -168,7 +168,7 @@ export default function Auth() {
   // --- GOOGLE LOGIN HANDLER ---
   const handleGoogleLogin = () => {
     // Redirects to your backend route to start the Google OAuth flow
-    window.location.href = "http://localhost:5000/auth/google";
+    window.location.href = "https://aanya-backend.onrender.com/auth/google";
   };
 
   useEffect(() => {
@@ -189,7 +189,7 @@ export default function Auth() {
     setLoading(true);
 
     // const API_URL = "https://aanya-backend.onrender.com";
-    const API_URL = "http://localhost:5000";
+    const API_URL = "https://aanya-backend.onrender.com";
     const endpoint = isLogin ? "/auth/login" : "/auth/register";
 
     try {
