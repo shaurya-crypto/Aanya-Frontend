@@ -511,7 +511,7 @@ export default function Auth() {
                           </div>
                         </div>
                         <a
-                          href="http://localhost:5000/auth/google"
+                          href="https://aanya-backend.onrender.com/auth/google"
                           className="w-full h-12 rounded-xl border border-gray-200 dark:border-white/10 bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 text-gray-700 dark:text-white text-sm font-bold transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
                         >
                           <GoogleIcon />
