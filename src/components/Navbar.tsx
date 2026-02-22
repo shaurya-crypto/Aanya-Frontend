@@ -61,7 +61,7 @@ export default function Navbar() {
 
         <div className="flex items-center gap-3">
           
-          {/* --- ✨ NEW GLASSY CONTROL PC BUTTON ✨ --- */}
+          {/* --- ✨ DESKTOP GLASSY CONTROL PC BUTTON ✨ --- */}
           {logged && (
             <Link to="/control-pc" className="hidden md:block relative group">
               {/* Animated watery background blur */}
@@ -118,36 +118,55 @@ export default function Navbar() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden overflow-hidden glass border-t border-border/50"
+            // 👈 NEW: Added solid blur, shadow, and background colors to prevent transparency issues
+            className="md:hidden overflow-hidden bg-white/95 dark:bg-[#020205]/95 backdrop-blur-3xl border-t border-gray-200 dark:border-white/10 shadow-2xl"
           >
-            <div className="container mx-auto px-4 py-4 flex flex-col gap-3">
+            <div className="container mx-auto px-4 py-6 flex flex-col gap-4">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground py-2"
+                  className="text-base font-medium text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white py-2"
                 >
                   {link.label}
                 </Link>
               ))}
               
-              {/* Mobile Control PC Button */}
+              {/* --- ✨ MOBILE GLASSY CONTROL PC BUTTON ✨ --- */}
               {logged && (
                 <Link
                   to="/control-pc"
                   onClick={() => setMobileOpen(false)}
-                  className="h-10 px-4 mt-2 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 text-cyan-700 dark:text-cyan-400 text-sm font-bold flex items-center justify-center gap-2"
+                  className="relative group mt-2"
                 >
-                  <MonitorSmartphone size={18} />
-                  Control PC
+                  {/* Animated watery background blur for mobile */}
+                  <motion.div 
+                    animate={{ 
+                      scale: [1, 1.02, 1],
+                      opacity: [0.5, 0.8, 0.5]
+                    }}
+                    transition={{ 
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                    className="absolute -inset-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-xl blur opacity-60"
+                  />
+                  
+                  {/* Actual Mobile Button */}
+                  <div className="relative h-12 px-4 rounded-xl bg-white/40 dark:bg-black/40 border border-white/40 dark:border-white/10 backdrop-blur-md text-cyan-900 dark:text-cyan-50 text-sm font-bold flex items-center justify-center gap-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
+                    <MonitorSmartphone size={18} className="text-cyan-700 dark:text-cyan-300" />
+                    Control PC
+                    <Sparkles size={14} className="text-yellow-400" />
+                  </div>
                 </Link>
               )}
 
               <Link
                 to={auth_msg}
                 onClick={() => setMobileOpen(false)}
-                className="h-10 px-4 mt-2 rounded-xl bg-primary text-black text-sm font-bold flex items-center justify-center shadow-lg shadow-primary/20"
+                className="h-12 px-4 mt-2 rounded-xl bg-primary text-black text-sm font-bold flex items-center justify-center shadow-lg shadow-primary/20"
               >
                 {msg}
               </Link>
