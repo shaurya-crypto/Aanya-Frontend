@@ -4,6 +4,7 @@ import { Mic, Monitor, AlarmClock, ShieldCheck, ChevronRight, Sparkles, Play, Co
 import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
 import ScrollReveal from "../components/ScrollReveal";
+import {  Smartphone, Lock } from "lucide-react";
 
 // --- Components ---
 
@@ -316,6 +317,119 @@ export default function Index() {
                     </motion.div>
                   </ScrollReveal>
                 ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Remote Control Section */}
+          <section className="py-24 relative z-10 overflow-hidden">
+            {/* Background ambient glow for this specific section */}
+            <div className="absolute top-1/2 left-0 w-96 h-96 bg-primary/10 blur-[120px] rounded-full -translate-y-1/2 pointer-events-none" />
+            
+            <div className="container mx-auto px-4">
+              <div className="flex flex-col lg:flex-row items-center gap-16">
+                
+                {/* Text Content */}
+                <div className="flex-1 space-y-8">
+                  <ScrollReveal>
+                    <div className="glass-button w-fit px-4 py-1.5 rounded-full flex items-center gap-2 text-sm font-medium mb-6">
+                      <Smartphone size={16} className="text-primary" />
+                      <span>Remote Access</span>
+                    </div>
+                    <h2 className="font-display text-4xl md:text-5xl font-bold leading-tight mb-6 drop-shadow-sm">
+                      Control your PC from your pocket.
+                    </h2>
+                    <p className="text-lg text-muted-foreground leading-relaxed">
+                      Left home in a hurry and forgot to turn off your computer? As long as Aanya is running, you're always in control. Access your system remotely via your phone, securely authenticate with your API key, and execute commands from anywhere.
+                    </p>
+                    
+                    <div className="mt-8 space-y-4">
+                      <div className="glass-panel p-4 rounded-2xl flex items-start gap-4 hover:border-primary/30 transition-colors">
+                        <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+                          <Lock size={20} className="text-primary" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-foreground mb-1">Example Use Case</h4>
+                          <p className="text-muted-foreground text-sm leading-relaxed">
+                            Type <span className="text-primary font-mono bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">"Lock my PC"</span> on your phone, and Aanya instantly secures your desktop back home.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </ScrollReveal>
+                </div>
+
+                {/* Visual Showcase (Phone to PC animation) */}
+                <div className="flex-1 w-full relative perspective-1000">
+                  <ScrollReveal delay={0.2}>
+                    <motion.div 
+                      whileHover={{ rotateY: -2, rotateX: 2 }}
+                      transition={{ type: "spring", stiffness: 100 }}
+                      className="glass-panel p-6 md:p-10 rounded-[2.5rem] relative"
+                    >
+                      {/* Glowing effect inside the card */}
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-accent/20 blur-[80px] rounded-full pointer-events-none" />
+                      
+                      <div className="relative z-10 flex flex-col sm:flex-row gap-6 items-center justify-between">
+                        
+                        {/* Phone Mockup */}
+                        <div className="w-full sm:w-[240px] bg-black/60 backdrop-blur-xl border border-white/10 rounded-[2rem] p-4 flex flex-col gap-4 shadow-2xl relative z-20">
+                          <div className="flex justify-center mb-1">
+                            <div className="w-12 h-1.5 bg-white/20 rounded-full" />
+                          </div>
+                          
+                          <div className="space-y-3 flex-1">
+                            <div className="bg-primary/10 border border-primary/20 rounded-xl p-2 text-xs font-mono text-primary flex items-center gap-2">
+                              <ShieldCheck size={14}/> API Connected
+                            </div>
+                            <div className="flex justify-end pt-2">
+                              <span className="glass-button px-3 py-2 rounded-2xl rounded-tr-sm text-sm font-medium">
+                                Lock my PC
+                              </span>
+                            </div>
+                            <div className="flex justify-start">
+                              <span className="bg-primary/20 border border-primary/20 px-3 py-2 rounded-2xl rounded-tl-sm text-sm font-medium text-foreground">
+                                Securing desktop...
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-2 h-10 glass-button rounded-xl flex items-center px-3 opacity-60">
+                            <span className="text-xs text-muted-foreground">Type a command...</span>
+                          </div>
+                        </div>
+
+                        {/* Animated Connection Line */}
+                        <div className="hidden sm:flex flex-1 items-center justify-center relative px-2">
+                          <div className="w-full h-[2px] bg-gradient-to-r from-primary/30 to-accent/30 relative overflow-hidden rounded-full">
+                            <motion.div 
+                              animate={{ x: ["-100%", "300%"] }}
+                              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                              className="absolute top-1/2 -translate-y-1/2 left-0 w-1/3 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent"
+                            />
+                          </div>
+                        </div>
+
+                        {/* PC Mockup Status */}
+                        <div className="w-full sm:w-[220px] bg-black/60 backdrop-blur-xl border border-primary/30 rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-3 shadow-[0_0_30px_rgba(var(--primary),0.15)] relative z-20">
+                          <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center mb-2 relative">
+                            {/* Radar pulse animation */}
+                            <motion.div 
+                              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                              className="absolute inset-0 border-2 border-primary rounded-full"
+                            />
+                            <Lock size={28} className="text-primary" />
+                          </div>
+                          <h5 className="font-display font-bold text-lg">System Locked</h5>
+                          <p className="text-xs text-muted-foreground">Aanya is standing by</p>
+                        </div>
+
+                      </div>
+                    </motion.div>
+                  </ScrollReveal>
+                </div>
+
               </div>
             </div>
           </section>
