@@ -7,42 +7,50 @@ import Layout from "../components/Layout";
 
 const RadiantBackground = () => {
   return (
-    <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none">
+    // OPTIMIZED: Added transform-gpu, scaled down blurs and mix-blend modes for mobile
+    <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none transform-gpu">
       <div className="absolute inset-0 bg-black hidden dark:block" />
-      <div className="absolute inset-0 bg-radiant-mesh radiant-dark hidden dark:block mix-blend-screen opacity-50" />
-      <div className="absolute inset-0 bg-radiant-mesh radiant-light dark:hidden opacity-30" />
-      <div className="absolute inset-0 noise-overlay opacity-5" />
-      <div className="absolute top-[10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-primary/10 blur-[150px] animate-float-slow hidden dark:block mix-blend-screen" />
-      <div className="absolute bottom-[10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-accent/10 blur-[150px] animate-float-slow hidden dark:block mix-blend-screen" style={{ animationDelay: "2s" }} />
+      <div className="absolute inset-0 bg-radiant-mesh radiant-dark hidden dark:block opacity-50 md:mix-blend-screen" />
+      <div className="absolute inset-0 bg-radiant-mesh radiant-light dark:hidden" />
+      <div className="absolute inset-0 noise-overlay opacity-30" />
+      <div className="absolute top-[-10%] left-[-10%] w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full bg-primary/30 blur-[60px] md:blur-[120px] animate-float-slow hidden dark:block md:mix-blend-screen will-change-transform" />
+      <div className="absolute bottom-[0%] right-[-10%] w-[400px] h-[400px] md:w-[600px] md:h-[600px] rounded-full bg-accent/20 blur-[60px] md:blur-[120px] animate-float-slow hidden dark:block md:mix-blend-screen will-change-transform" style={{ animationDelay: "2s" }} />
     </div>
   );
 };
 
 const MagneticCursor = () => {
+  // OPTIMIZED: Only render this component if the user has a mouse
+  const [hasMouse, setHasMouse] = useState(false);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const cursorX = useSpring(mouseX, { damping: 25, stiffness: 120, mass: 0.5 });
   const cursorY = useSpring(mouseY, { damping: 25, stiffness: 120, mass: 0.5 });
 
   useEffect(() => {
-    const moveCursor = (e: MouseEvent) => {
-      mouseX.set(e.clientX - 100);
-      mouseY.set(e.clientY - 100);
-    };
-    window.addEventListener("mousemove", moveCursor);
-    return () => window.removeEventListener("mousemove", moveCursor);
-  }, []);
+    if (window.matchMedia("(pointer: fine)").matches) {
+      setHasMouse(true);
+      const moveCursor = (e: MouseEvent) => {
+        mouseX.set(e.clientX - 100);
+        mouseY.set(e.clientY - 100);
+      };
+      window.addEventListener("mousemove", moveCursor);
+      return () => window.removeEventListener("mousemove", moveCursor);
+    }
+  }, [mouseX, mouseY]);
+
+  // Completely unmounts on phones to save JS/CPU thread
+  if (!hasMouse) return null;
 
   return (
     <motion.div
-      className="fixed top-0 left-0 w-[200px] h-[200px] pointer-events-none z-0 hidden md:block mix-blend-overlay dark:mix-blend-screen"
+      className="fixed top-0 left-0 w-[200px] h-[200px] pointer-events-none z-0 mix-blend-overlay dark:mix-blend-screen will-change-transform"
       style={{ x: cursorX, y: cursorY }}
     >
-      <div className="w-full h-full rounded-full bg-white/20 dark:bg-primary/20 blur-[80px]" />
+      <div className="w-full h-full rounded-full bg-white/40 dark:bg-primary/30 blur-[60px]" />
     </motion.div>
   );
 };
-
 const SplashScreen = () => (
   <motion.div
     key="splash-screen"
@@ -50,7 +58,7 @@ const SplashScreen = () => (
     initial={{ opacity: 1 }}
     exit={{
       opacity: 0,
-      transition: { duration: 0.5, delay: 0.3 } // Wait for zoom to finish before removing bg
+      transition: { duration: 0.5, delay: 0.3 }
     }}
   >
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -64,11 +72,11 @@ const SplashScreen = () => (
         opacity: 1,
       }}
       exit={{
-        scale: 100, // Zoom huge
+        scale: 17, // OPTIMIZED: Reduced from 100 to prevent massive repaint drop on mobile
         opacity: 0,
         transition: {
-          scale: { duration: 0.8, ease: "easeIn" }, // Zoom smooth then fast
-          opacity: { duration: 0.2, delay: 0.6 } // Fade out at the very end
+          scale: { duration: 0.8, ease: "easeIn" },
+          opacity: { duration: 0.2, delay: 0.6 }
         }
       }}
       transition={{
@@ -77,7 +85,6 @@ const SplashScreen = () => (
         repeatType: "reverse",
         ease: "easeInOut"
       }}
-      // ✅ FORCE GPU ACCELERATION
       style={{ willChange: "transform", transform: "translateZ(0)" }}
       className="relative z-10 flex items-center justify-center"
     >
@@ -165,11 +172,7 @@ export default function Auth() {
     }
   }, []);
 
-  // --- GOOGLE LOGIN HANDLER ---
-  const handleGoogleLogin = () => {
-    // Redirects to your backend route to start the Google OAuth flow
-    window.location.href = "https://aanya-backend.onrender.com/auth/google";
-  };
+
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -188,8 +191,8 @@ export default function Auth() {
     setError("");
     setLoading(true);
 
-    // const API_URL = "https://aanya-backend.onrender.com";
     const API_URL = "https://aanya-backend.onrender.com";
+    // const API_URL = "http://localhost:5000";
     const endpoint = isLogin ? "/auth/login" : "/auth/register";
 
     try {
@@ -295,9 +298,11 @@ export default function Auth() {
               <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/10 to-transparent opacity-50" />
 
               <div className="relative z-10">
-                <div className="h-20 w-20 rounded-2xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center mb-8 shadow-lg shadow-primary/20">
-                  <span className="text-white font-display font-bold text-4xl">A</span>
-                </div>
+                <img
+                  src="/logo.png"
+                  alt="Aanya AI"
+                  className="h-20 w-20 rounded-2xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center mb-8 shadow-lg shadow-primary/20"
+                />
 
                 <h2 className="font-display text-4xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
                   Welcome to <br />
