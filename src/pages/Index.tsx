@@ -10,20 +10,20 @@ import {  Smartphone, Lock } from "lucide-react";
 
 const RadiantBackground = () => {
   return (
-    <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none">
+    // OPTIMIZED: Added transform-gpu, scaled down blurs and mix-blend modes for mobile
+    <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none transform-gpu">
       <div className="absolute inset-0 bg-black hidden dark:block" />
-      <div className="absolute inset-0 bg-radiant-mesh radiant-dark hidden dark:block mix-blend-screen" />
+      <div className="absolute inset-0 bg-radiant-mesh radiant-dark hidden dark:block opacity-50 md:mix-blend-screen" />
       <div className="absolute inset-0 bg-radiant-mesh radiant-light dark:hidden" />
-      <div className="absolute inset-0 noise-overlay" />
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-primary/30 blur-[120px] animate-float-slow hidden dark:block mix-blend-screen" />
-      <div className="absolute bottom-[0%] right-[-10%] w-[600px] h-[600px] rounded-full bg-accent/20 blur-[120px] animate-float-slow hidden dark:block mix-blend-screen" style={{ animationDelay: "2s" }} />
+      <div className="absolute inset-0 noise-overlay opacity-30" />
+      <div className="absolute top-[-10%] left-[-10%] w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full bg-primary/30 blur-[60px] md:blur-[120px] animate-float-slow hidden dark:block md:mix-blend-screen will-change-transform" />
+      <div className="absolute bottom-[0%] right-[-10%] w-[400px] h-[400px] md:w-[600px] md:h-[600px] rounded-full bg-accent/20 blur-[60px] md:blur-[120px] animate-float-slow hidden dark:block md:mix-blend-screen will-change-transform" style={{ animationDelay: "2s" }} />
     </div>
   );
 };
 
 const Check_for_login = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
 
   useEffect(() => {
     if (localStorage.getItem("token") !== null) {
@@ -35,23 +35,31 @@ const Check_for_login = () => {
 }
 
 const MagneticCursor = () => {
+  // OPTIMIZED: Only render this component if the user has a mouse
+  const [hasMouse, setHasMouse] = useState(false);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const cursorX = useSpring(mouseX, { damping: 25, stiffness: 120, mass: 0.5 });
   const cursorY = useSpring(mouseY, { damping: 25, stiffness: 120, mass: 0.5 });
 
   useEffect(() => {
-    const moveCursor = (e: MouseEvent) => {
-      mouseX.set(e.clientX - 100);
-      mouseY.set(e.clientY - 100);
-    };
-    window.addEventListener("mousemove", moveCursor);
-    return () => window.removeEventListener("mousemove", moveCursor);
-  }, []);
+    if (window.matchMedia("(pointer: fine)").matches) {
+      setHasMouse(true);
+      const moveCursor = (e: MouseEvent) => {
+        mouseX.set(e.clientX - 100);
+        mouseY.set(e.clientY - 100);
+      };
+      window.addEventListener("mousemove", moveCursor);
+      return () => window.removeEventListener("mousemove", moveCursor);
+    }
+  }, [mouseX, mouseY]);
+
+  // Completely unmounts on phones to save JS/CPU thread
+  if (!hasMouse) return null;
 
   return (
     <motion.div
-      className="fixed top-0 left-0 w-[200px] h-[200px] pointer-events-none z-0 hidden md:block mix-blend-overlay dark:mix-blend-screen"
+      className="fixed top-0 left-0 w-[200px] h-[200px] pointer-events-none z-0 mix-blend-overlay dark:mix-blend-screen will-change-transform"
       style={{ x: cursorX, y: cursorY }}
     >
       <div className="w-full h-full rounded-full bg-white/40 dark:bg-primary/30 blur-[60px]" />
@@ -80,7 +88,7 @@ const SplashScreen = () => (
         opacity: 1,
       }}
       exit={{
-        scale: 100,
+        scale: 17, // OPTIMIZED: Reduced from 100 to prevent massive repaint drop on mobile
         opacity: 0,
         transition: {
           scale: { duration: 0.8, ease: "easeIn" },
@@ -153,8 +161,8 @@ export default function Index() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <RadiantBackground /> {/* Heavy Component */}
-          <MagneticCursor />    {/* Heavy Component */}
+          <RadiantBackground /> {/* Heavy Component Optimized */}
+          <MagneticCursor />    {/* Heavy Component Optimized */}
 
           {/* Hero Section */}
           <section className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-20 pb-10">
@@ -229,7 +237,8 @@ export default function Index() {
               >
                 <div className="glass-panel p-2 rounded-[2.5rem] relative group hover:shadow-[0_0_50px_-10px_rgba(var(--primary),0.3)] transition-shadow duration-500">
 
-                  <div className="bg-white/40 dark:bg-black/40 rounded-[2.3rem] overflow-hidden backdrop-blur-md border border-white/20 p-6 md:p-10 flex flex-col md:flex-row gap-8 items-center">
+                  {/* OPTIMIZED: Downgraded backdrop blur on mobile */}
+                  <div className="bg-white/40 dark:bg-black/40 rounded-[2.3rem] overflow-hidden backdrop-blur-sm md:backdrop-blur-md border border-white/20 p-6 md:p-10 flex flex-col md:flex-row gap-8 items-center">
 
                     {/* Visualizer (Fake) */}
                     <div className="flex-1 w-full space-y-6">
@@ -245,7 +254,7 @@ export default function Index() {
                                 key={i}
                                 animate={{ height: [10, 24, 10] }}
                                 transition={{ repeat: Infinity, duration: 1, delay: i * 0.1 }}
-                                className="w-1.5 bg-primary rounded-full"
+                                className="w-1.5 bg-primary rounded-full transform-gpu" // OPTIMIZED: Added transform-gpu
                               />
                             ))}
                           </div>
@@ -300,7 +309,7 @@ export default function Index() {
                   <ScrollReveal key={f.title} delay={i * 0.1}>
                     <motion.div
                       whileHover={{ y: -10 }}
-                      className="glass-panel p-8 rounded-3xl h-full flex flex-col justify-between group transition-all duration-300"
+                      className="glass-panel p-8 rounded-3xl h-full flex flex-col justify-between group transition-all duration-300 transform-gpu" // OPTIMIZED
                     >
                       <div className="mb-6">
                         <div className="h-14 w-14 rounded-2xl glass-button flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 group-hover:bg-primary group-hover:text-white">
@@ -324,7 +333,7 @@ export default function Index() {
           {/* Remote Control Section */}
           <section className="py-24 relative z-10 overflow-hidden">
             {/* Background ambient glow for this specific section */}
-            <div className="absolute top-1/2 left-0 w-96 h-96 bg-primary/10 blur-[120px] rounded-full -translate-y-1/2 pointer-events-none" />
+            <div className="absolute top-1/2 left-0 w-96 h-96 bg-primary/10 blur-[120px] rounded-full -translate-y-1/2 pointer-events-none transform-gpu" />
             
             <div className="container mx-auto px-4">
               <div className="flex flex-col lg:flex-row items-center gap-16">
@@ -368,12 +377,13 @@ export default function Index() {
                       className="glass-panel p-6 md:p-10 rounded-[2.5rem] relative"
                     >
                       {/* Glowing effect inside the card */}
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-accent/20 blur-[80px] rounded-full pointer-events-none" />
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-accent/20 blur-[80px] rounded-full pointer-events-none transform-gpu" />
                       
                       <div className="relative z-10 flex flex-col sm:flex-row gap-6 items-center justify-between">
                         
                         {/* Phone Mockup */}
-                        <div className="w-full sm:w-[240px] bg-black/60 backdrop-blur-xl border border-white/10 rounded-[2rem] p-4 flex flex-col gap-4 shadow-2xl relative z-20">
+                        {/* OPTIMIZED: Downgraded backdrop blur on mobile */}
+                        <div className="w-full sm:w-[240px] bg-black/60 backdrop-blur-md md:backdrop-blur-xl border border-white/10 rounded-[2rem] p-4 flex flex-col gap-4 shadow-2xl relative z-20">
                           <div className="flex justify-center mb-1">
                             <div className="w-12 h-1.5 bg-white/20 rounded-full" />
                           </div>
@@ -405,19 +415,20 @@ export default function Index() {
                             <motion.div 
                               animate={{ x: ["-100%", "300%"] }}
                               transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                              className="absolute top-1/2 -translate-y-1/2 left-0 w-1/3 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent"
+                              className="absolute top-1/2 -translate-y-1/2 left-0 w-1/3 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent transform-gpu" // OPTIMIZED
                             />
                           </div>
                         </div>
 
                         {/* PC Mockup Status */}
-                        <div className="w-full sm:w-[220px] bg-black/60 backdrop-blur-xl border border-primary/30 rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-3 shadow-[0_0_30px_rgba(var(--primary),0.15)] relative z-20">
+                        {/* OPTIMIZED: Downgraded backdrop blur on mobile */}
+                        <div className="w-full sm:w-[220px] bg-black/60 backdrop-blur-md md:backdrop-blur-xl border border-primary/30 rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-3 shadow-[0_0_30px_rgba(var(--primary),0.15)] relative z-20">
                           <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center mb-2 relative">
                             {/* Radar pulse animation */}
                             <motion.div 
                               animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
                               transition={{ duration: 2, repeat: Infinity }}
-                              className="absolute inset-0 border-2 border-primary rounded-full"
+                              className="absolute inset-0 border-2 border-primary rounded-full transform-gpu" // OPTIMIZED
                             />
                             <Lock size={28} className="text-primary" />
                           </div>
@@ -440,8 +451,8 @@ export default function Index() {
               <div className="glass-panel p-12 md:p-20 rounded-[3rem] text-center max-w-5xl mx-auto overflow-hidden relative">
 
                 {/* Glowing Orbs for CTA */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/30 blur-[100px] rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/30 blur-[100px] rounded-full -translate-x-1/3 translate-y-1/3 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/30 blur-[100px] rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none transform-gpu" />
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/30 blur-[100px] rounded-full -translate-x-1/3 translate-y-1/3 pointer-events-none transform-gpu" />
 
                 <ScrollReveal>
                   <h2 className="font-display text-4xl md:text-6xl font-bold mb-6 tracking-tight drop-shadow-md">
