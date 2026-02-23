@@ -21,44 +21,49 @@ import SplashScreen from "../components/SplashScreen";
 import { User, Shield, Palette, Lock } from "lucide-react";
 import { ShieldAlert, Monitor, History, AlertTriangle } from "lucide-react"
 
+
 const RadiantBackground = () => {
   return (
-    <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none">
-      {/* Dark Mode Gradient */}
+    // OPTIMIZED: Added transform-gpu, scaled down blurs and mix-blend modes for mobile
+    <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none transform-gpu">
       <div className="absolute inset-0 bg-black hidden dark:block" />
-      <div className="absolute inset-0 bg-radiant-mesh radiant-dark hidden dark:block mix-blend-screen opacity-50" />
-      {/* Light Mode Gradient */}
-      <div className="absolute inset-0 bg-radiant-mesh radiant-light dark:hidden opacity-30" />
-      {/* Noise */}
-      <div className="absolute inset-0 noise-overlay opacity-5" />
-      {/* Floating Orbs */}
-      <div className="absolute top-[10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-primary/10 blur-[150px] animate-float-slow hidden dark:block mix-blend-screen" />
-      <div className="absolute bottom-[10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-accent/10 blur-[150px] animate-float-slow hidden dark:block mix-blend-screen" style={{ animationDelay: "2s" }} />
+      <div className="absolute inset-0 bg-radiant-mesh radiant-dark hidden dark:block opacity-50 md:mix-blend-screen" />
+      <div className="absolute inset-0 bg-radiant-mesh radiant-light dark:hidden" />
+      <div className="absolute inset-0 noise-overlay opacity-30" />
+      <div className="absolute top-[-10%] left-[-10%] w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full bg-primary/30 blur-[60px] md:blur-[120px] animate-float-slow hidden dark:block md:mix-blend-screen will-change-transform" />
+      <div className="absolute bottom-[0%] right-[-10%] w-[400px] h-[400px] md:w-[600px] md:h-[600px] rounded-full bg-accent/20 blur-[60px] md:blur-[120px] animate-float-slow hidden dark:block md:mix-blend-screen will-change-transform" style={{ animationDelay: "2s" }} />
     </div>
   );
 };
-
 const MagneticCursor = () => {
+  // OPTIMIZED: Only render this component if the user has a mouse
+  const [hasMouse, setHasMouse] = useState(false);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const cursorX = useSpring(mouseX, { damping: 25, stiffness: 120, mass: 0.5 });
   const cursorY = useSpring(mouseY, { damping: 25, stiffness: 120, mass: 0.5 });
 
   useEffect(() => {
-    const moveCursor = (e: MouseEvent) => {
-      mouseX.set(e.clientX - 100);
-      mouseY.set(e.clientY - 100);
-    };
-    window.addEventListener("mousemove", moveCursor);
-    return () => window.removeEventListener("mousemove", moveCursor);
-  }, []);
+    if (window.matchMedia("(pointer: fine)").matches) {
+      setHasMouse(true);
+      const moveCursor = (e: MouseEvent) => {
+        mouseX.set(e.clientX - 100);
+        mouseY.set(e.clientY - 100);
+      };
+      window.addEventListener("mousemove", moveCursor);
+      return () => window.removeEventListener("mousemove", moveCursor);
+    }
+  }, [mouseX, mouseY]);
+
+  // Completely unmounts on phones to save JS/CPU thread
+  if (!hasMouse) return null;
 
   return (
     <motion.div
-      className="fixed top-0 left-0 w-[200px] h-[200px] pointer-events-none z-0 hidden md:block mix-blend-overlay dark:mix-blend-screen"
+      className="fixed top-0 left-0 w-[200px] h-[200px] pointer-events-none z-0 mix-blend-overlay dark:mix-blend-screen will-change-transform"
       style={{ x: cursorX, y: cursorY }}
     >
-      <div className="w-full h-full rounded-full bg-white/20 dark:bg-primary/20 blur-[80px]" />
+      <div className="w-full h-full rounded-full bg-white/40 dark:bg-primary/30 blur-[60px]" />
     </motion.div>
   );
 };
@@ -314,8 +319,6 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem("token");
 
-      // ⚠️ Note: I am assuming your route is /user/key/:id. 
-      // If your backend route is just /key/:id, remove the /user part!
       const res = await fetch(`${API_URL}/user/key/${id}`, {
         method: "DELETE",
         headers: {
@@ -340,8 +343,6 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem("token");
 
-      // ⚠️ Note: I am assuming your route is /user/key/:id/toggle.
-      // If your backend route uses POST instead of PUT, change the method below!
       const res = await fetch(`${API_URL}/user/key/${id}/toggle`, {
         method: "PUT",
         headers: {
@@ -418,7 +419,7 @@ export default function Dashboard() {
         }
       });
 
-      console.log("📥 Server Status:", res.status);
+      // console.log("📥 Server Status:", res.status);
 
       // If the server sends back an error page instead of JSON, we catch it here
       const text = await res.text();
