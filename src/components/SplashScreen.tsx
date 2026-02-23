@@ -22,11 +22,11 @@ export default function SplashScreen() {
           opacity: 1,
         }}
         exit={{
-          scale: 100, // Zoom huge
+          scale: 17, // OPTIMIZED: Reduced from 100 to prevent massive repaint drop on mobile
           opacity: 0,
-          transition: { 
-              scale: { duration: 0.8, ease: "easeIn" }, 
-              opacity: { duration: 0.2, delay: 0.6 } 
+          transition: {
+            scale: { duration: 0.8, ease: "easeIn" },
+            opacity: { duration: 0.2, delay: 0.6 }
           }
         }}
         transition={{
@@ -35,8 +35,7 @@ export default function SplashScreen() {
           repeatType: "reverse",
           ease: "easeInOut"
         }}
-        // Force GPU Acceleration
-        style={{ willChange: "transform", transform: "translateZ(0)" }} 
+        style={{ willChange: "transform", transform: "translateZ(0)" }}
         className="relative z-10 flex items-center justify-center"
       >
         <motion.div
@@ -44,7 +43,6 @@ export default function SplashScreen() {
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           className="absolute inset-0 bg-primary/40 blur-2xl rounded-full"
         />
-        {/* Make sure logo path is correct */}
         <img
           src="/load.png"
           alt="Loading..."
