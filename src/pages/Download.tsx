@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence, useSpring, useMotionValue } from "framer-motion";
 import {
@@ -19,40 +17,49 @@ import {
 import Layout from "../components/Layout";
 import SplashScreen from "../components/SplashScreen";
 
-// --- VISUAL COMPONENTS (Consistency) ---
-
-const RadiantBackground = () => (
-  <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none">
-    <div className="absolute inset-0 bg-black hidden dark:block" />
-    <div className="absolute inset-0 bg-radiant-mesh radiant-dark hidden dark:block mix-blend-screen opacity-50" />
-    <div className="absolute inset-0 bg-radiant-mesh radiant-light dark:hidden opacity-30" />
-    <div className="absolute inset-0 noise-overlay opacity-5" />
-    <div className="absolute top-[10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-primary/10 blur-[150px] animate-float-slow hidden dark:block mix-blend-screen" />
-    <div className="absolute bottom-[10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-accent/10 blur-[150px] animate-float-slow hidden dark:block mix-blend-screen" style={{ animationDelay: "2s" }} />
-  </div>
-);
+const RadiantBackground = () => {
+  return (
+    // OPTIMIZED: Added transform-gpu, scaled down blurs and mix-blend modes for mobile
+    <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none transform-gpu">
+      <div className="absolute inset-0 bg-black hidden dark:block" />
+      <div className="absolute inset-0 bg-radiant-mesh radiant-dark hidden dark:block opacity-50 md:mix-blend-screen" />
+      <div className="absolute inset-0 bg-radiant-mesh radiant-light dark:hidden" />
+      <div className="absolute inset-0 noise-overlay opacity-30" />
+      <div className="absolute top-[-10%] left-[-10%] w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full bg-primary/30 blur-[60px] md:blur-[120px] animate-float-slow hidden dark:block md:mix-blend-screen will-change-transform" />
+      <div className="absolute bottom-[0%] right-[-10%] w-[400px] h-[400px] md:w-[600px] md:h-[600px] rounded-full bg-accent/20 blur-[60px] md:blur-[120px] animate-float-slow hidden dark:block md:mix-blend-screen will-change-transform" style={{ animationDelay: "2s" }} />
+    </div>
+  );
+};
 
 const MagneticCursor = () => {
+  // OPTIMIZED: Only render this component if the user has a mouse
+  const [hasMouse, setHasMouse] = useState(false);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const cursorX = useSpring(mouseX, { damping: 25, stiffness: 120, mass: 0.5 });
   const cursorY = useSpring(mouseY, { damping: 25, stiffness: 120, mass: 0.5 });
 
   useEffect(() => {
-    const moveCursor = (e: MouseEvent) => {
-      mouseX.set(e.clientX - 100);
-      mouseY.set(e.clientY - 100);
-    };
-    window.addEventListener("mousemove", moveCursor);
-    return () => window.removeEventListener("mousemove", moveCursor);
-  }, []);
+    if (window.matchMedia("(pointer: fine)").matches) {
+      setHasMouse(true);
+      const moveCursor = (e: MouseEvent) => {
+        mouseX.set(e.clientX - 100);
+        mouseY.set(e.clientY - 100);
+      };
+      window.addEventListener("mousemove", moveCursor);
+      return () => window.removeEventListener("mousemove", moveCursor);
+    }
+  }, [mouseX, mouseY]);
+
+  // Completely unmounts on phones to save JS/CPU thread
+  if (!hasMouse) return null;
 
   return (
     <motion.div
-      className="fixed top-0 left-0 w-[200px] h-[200px] pointer-events-none z-0 hidden md:block mix-blend-overlay dark:mix-blend-screen"
+      className="fixed top-0 left-0 w-[200px] h-[200px] pointer-events-none z-0 mix-blend-overlay dark:mix-blend-screen will-change-transform"
       style={{ x: cursorX, y: cursorY }}
     >
-      <div className="w-full h-full rounded-full bg-white/20 dark:bg-primary/20 blur-[80px]" />
+      <div className="w-full h-full rounded-full bg-white/40 dark:bg-primary/30 blur-[60px]" />
     </motion.div>
   );
 };
@@ -155,7 +162,7 @@ export default function Download() {
                       </div>
                       <div className="text-center md:text-left">
                         <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">Aanya for Windows</h3>
-                        <p className="text-gray-500 dark:text-gray-400 font-medium">Itel / AMD 64-bit Architecture</p>
+                        <p className="text-gray-500 dark:text-gray-400 font-medium">Intel / AMD 64-bit Architecture</p>
                       </div>
                     </div>
 
@@ -186,13 +193,42 @@ export default function Download() {
                     </p>
                   </motion.div>
 
-                  {/* Right: Technical Requirements */}
+                  {/* Right: Technical Requirements & Trust Notices */}
                   <motion.div
                     initial={{ opacity: 0, x: 30 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 }}
                     className="lg:col-span-2 space-y-6"
                   >
+                    
+                    {/* NEW: Open Source & Trust Section */}
+                    <div className="p-6 md:p-8 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 relative overflow-hidden group shadow-[0_0_30px_-5px_rgba(16,185,129,0.15)]">
+                      <div className="absolute -right-6 -top-6 opacity-20 rotate-12 group-hover:rotate-45 transition-transform duration-700">
+                        <ShieldCheck size={100} className="text-emerald-500" />
+                      </div>
+                      <div className="flex flex-col gap-4 relative z-10">
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center shrink-0 backdrop-blur-md">
+                            <ShieldCheck className="text-emerald-600 dark:text-emerald-400" size={26} />
+                          </div>
+                          <h4 className="font-display font-bold text-emerald-800 dark:text-emerald-300 text-xl">100% Open Source</h4>
+                        </div>
+                        <div>
+                          <p className="text-sm text-emerald-900/80 dark:text-emerald-100/70 leading-relaxed font-medium mb-4">
+                            Aanya AI Desktop is fully open-source. You can inspect our code, verify the security, and install with complete trust. Transparency is our priority.
+                          </p>
+                          <a
+                            href="https://github.com/shaurya-crypto/Aanya-Application"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-sm font-bold text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 transition-colors group/link"
+                          >
+                            <Link size={16} className="group-hover/link:-rotate-45 transition-transform" /> View Source Code
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="rounded-3xl border border-gray-200 dark:border-white/10 bg-white/40 dark:bg-white/5 p-8 backdrop-blur-xl">
                       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                         <Laptop size={20} className="text-primary" />
@@ -237,7 +273,7 @@ export default function Download() {
           </motion.div>
         )}
 
-        {/* --- THANK YOU MODAL (Popup) --- */}
+        {/* --- IMPROVED THANK YOU MODAL (Popup) --- */}
         <AnimatePresence>
           {showPopup && (
             <motion.div
@@ -249,11 +285,12 @@ export default function Download() {
               <motion.div
                 initial={{ scale: 0.9, y: 30 }}
                 animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0 }}
                 className="max-w-md w-full bg-white dark:bg-[#0c0c0e] border border-gray-200 dark:border-white/10 rounded-[3rem] p-10 shadow-2xl text-center relative"
               >
                 <button
                   onClick={() => setShowPopup(false)}
-                  className="absolute top-6 right-6 text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+                  className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   <X size={24} />
                 </button>
@@ -264,21 +301,20 @@ export default function Download() {
 
                 <h3 className="text-3xl font-display font-bold text-gray-900 dark:text-white mb-4 leading-tight">Thank You for Downloading!</h3>
                 <p className="text-gray-500 dark:text-muted-foreground mb-10 text-lg leading-relaxed">
-                  The setup is starting. To begin using Aanya, you need an **API Key** to connect the client to your account.
+                  The setup is starting. To begin using Aanya, you need an <span className="font-bold text-gray-800 dark:text-gray-200">API Key</span> to connect the client to your account.
                 </p>
 
-                <div className="space-y-4">
+                <div className="space-y-4 flex flex-col items-center">
                   <a
                     href={auth_msg}
-                    // to={auth_msg}
-                    className="w-full h-14 rounded-2xl bg-primary text-black font-bold text-lg flex items-center justify-center gap-3 hover:opacity-90 shadow-xl shadow-primary/20 transition-all"
+                    className="w-full h-14 rounded-2xl bg-primary text-black font-bold text-lg flex items-center justify-center gap-3 hover:scale-[1.02] hover:opacity-90 shadow-xl shadow-primary/20 transition-all"
                   >
-                    {/* <Key size={20} /> */}
+                    <Key size={20} />
                     {msg}
                   </a>
                   <button
                     onClick={() => setShowPopup(false)}
-                    className="text-sm font-bold text-gray-400 hover:text-primary transition-colors"
+                    className="text-sm font-bold text-gray-400 hover:text-primary transition-colors mt-2"
                   >
                     Close this window
                   </button>
