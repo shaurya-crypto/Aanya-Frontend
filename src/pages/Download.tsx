@@ -84,8 +84,8 @@ export default function Download() {
   const [showPopup, setShowPopup] = useState(false);
   const [isLoggedIn] = useState(() => localStorage.getItem("token") !== null);
 
-  const APP_VERSION = "4.0.0";
-  const DOWNLOAD_URL = "https://github.com/shaurya-crypto/Aanya-Application/releases/download/4.0.0/AanyaAI.exe";
+  const APP_VERSION = "4.5.0";
+  const DOWNLOAD_URL = "https://github.com/shaurya-crypto/Aanya-Application/releases/download/4.5.0/Aanya_setup.exe";
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -328,3 +328,4 @@ export default function Download() {
     </Layout>
   );
 }
+
